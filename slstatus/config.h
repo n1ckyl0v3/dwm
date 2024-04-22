@@ -68,11 +68,11 @@ static const struct arg args[] = {
 	{ cpu_perc,			" %s%|",						},
 	{ ram_used,			"󰍛 %s|",						},
 	{ battery_perc,		" %s%|",		 "BAT1"		},
-	{ battery_state,		"Battery state: %s%|",		 "BAT1"		},
+	{ battery_state,		"Battery state:%s%|",		 "BAT1"		},
 //	{vol_perc, "󰕾 %s%|", "/dev/mixer"},
-	    {run_command, " %s|", "echo $(pactl list sinks | grep 'Volume:' | head -n 1 | awk '{print " "$5}')"},
+	    {run_command, "  %s|", "echo $(pactl list sinks | grep 'Volume:' | head -n 1 | awk '{print " "$5}')"},
 
-	{wifi_essid, "󰖩 %s: ", "wlp0s20f3"},
+	{wifi_essid, "󰖩 %s:", "wlp0s20f3"},
 	{ wifi_perc, "%3s%%|", "wlp0s20f3" },
 	{ datetime, "󱑆 %s|",  "%F %T" },
 };

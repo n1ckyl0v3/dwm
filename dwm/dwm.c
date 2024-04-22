@@ -183,7 +183,7 @@ static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
-// static Monitor *dirtomon(int dir);
+static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
 static void expose(XEvent *e);
@@ -774,7 +774,6 @@ detachstack(Client *c)
 	}
 }
 
-/*
 Monitor *
 dirtomon(int dir)
 {
@@ -789,7 +788,7 @@ dirtomon(int dir)
 		for (m = mons; m->next != selmon; m = m->next);
 	return m;
 }
-*/
+
 void
 drawbar(Monitor *m)
 {
@@ -835,9 +834,7 @@ drawbar(Monitor *m)
 
 	if ((w = m->ww - tw - stw - x) > bh) {
 		if (m->sel) {
-			drw_setscheme(drw, scheme[SchemeNorm]);
-			// drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
-			drw_setscheme(drw, scheme[m == selmon ? SchemeInfoSel : SchemeInfoNorm]);
+			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
 			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
@@ -907,22 +904,17 @@ focusin(XEvent *e)
 }
 
 void
-focusmon(const Arg *arg) {
-    Monitor *m = NULL;
+focusmon(const Arg *arg)
+{
+	Monitor *m;
 
-    if (!mons->next)
-        return;
-
-    if (arg->i > 0) {
-        m = mons->next;
-    } else if (arg->i < 0 && mons->next) {
-        m = mons;
-    }
-
-    if (m) {
-        selmon = m;
-        focus(NULL);
-    }
+	if (!mons->next)
+		return;
+	if ((m = dirtomon(arg->i)) == selmon)
+		return;
+	unfocus(selmon->sel, 0);
+	selmon = m;
+	focus(NULL);
 }
 
 void
@@ -1916,25 +1908,13 @@ tag(const Arg *arg)
 	}
 }
 
-void tagmon(const Arg *arg) {
-    if (!selmon->sel || !mons->next)
-        return;
-
-    Monitor *m;
-
-    if (arg->i > 0) {
-        m = mons->next;  // Move to mon1
-    } else if (arg->i < 0 && mons->next) {
-        m = mons;  // Move to mon2
-    } else {
-        return; // Do nothing for arg->i == 0
-    }
-
-    sendmon(selmon->sel, m);
-    focus(NULL);
-    arrange(selmon);
+void
+tagmon(const Arg *arg)
+{
+	if (!selmon->sel || !mons->next)
+		return;
+	sendmon(selmon->sel, dirtomon(arg->i));
 }
-
 
 void
 tile(Monitor *m)
@@ -2580,8 +2560,8 @@ main(int argc, char *argv[])
 		die("pledge");
 #endif /* __OpenBSD__ */
 	scan();
-	runAutostart();
 	restoreSession();
+	runAutostart();
 	run();
 	if(restart) execvp(argv[0], argv);
 	cleanup();
